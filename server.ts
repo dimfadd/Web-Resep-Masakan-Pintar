@@ -16,9 +16,20 @@ import firebaseConfig from './firebase-applet-config.json';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
-  admin.initializeApp({
-    projectId: firebaseConfig.projectId,
-  });
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
+    : undefined;
+
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } else {
+    // Fallback for local/Cloud Run environment
+    admin.initializeApp({
+      projectId: firebaseConfig.projectId,
+    });
+  }
 }
 
 // Use the specific database ID if provided
@@ -27,6 +38,9 @@ const db = getFirestore(admin.app(), firebaseConfig.firestoreDatabaseId);
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Export app for Vercel
+export default app;
 
 const PORT = 3000;
 
