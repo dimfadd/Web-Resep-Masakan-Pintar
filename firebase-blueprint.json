@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["public", "chef", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Recipe": {
+      "title": "Recipe",
+      "description": "A recipe generated or added manually",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "description": { "type": "string" },
+        "origin": { "type": "string" },
+        "servings": { "type": "number" },
+        "prepTimeMinutes": { "type": "number" },
+        "cookTimeMinutes": { "type": "number" },
+        "difficulty": { "type": "string", "enum": ["mudah", "sedang", "sulit"] },
+        "type": { "type": "string", "enum": ["berkuah", "digoreng", "dipanggang", "dikukus", "mentah", "tumisan", "rebusan"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "fitnessGoal": { "type": "array", "items": { "type": "string" } },
+        "ingredients": { "type": "array" },
+        "steps": { "type": "array" },
+        "equipment": { "type": "array" },
+        "totalNutrition": { "type": "object" },
+        "nutritionPerServing": { "type": "object" },
+        "imageUrl": { "type": "string" },
+        "imagePrompt": { "type": "string" },
+        "isGeneratingImage": { "type": "boolean" },
+        "isFree": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "folder": { "type": "string" },
+        "language": { "type": "string" },
+        "storageInstructions": { "type": "string" },
+        "variations": { "type": "array", "items": { "type": "string" } },
+        "pairingWith": { "type": "array", "items": { "type": "string" } },
+        "authorId": { "type": "string", "description": "UID of the user who created the recipe" }
+      },
+      "required": ["id", "title", "description", "servings", "prepTimeMinutes", "cookTimeMinutes", "difficulty", "type", "tags", "fitnessGoal", "ingredients", "steps", "equipment", "totalNutrition", "nutritionPerServing", "isFree", "createdAt", "updatedAt", "language", "authorId"]
+    },
+    "AccessCode": {
+      "title": "AccessCode",
+      "description": "A code used to upgrade a public user to chef tier",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "used": { "type": "boolean" },
+        "usedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "used", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles and their roles"
+    },
+    "/recipes/{recipeId}": {
+      "schema": { "$ref": "#/entities/Recipe" },
+      "description": "Stores all recipes"
+    },
+    "/accessCodes/{codeId}": {
+      "schema": { "$ref": "#/entities/AccessCode" },
+      "description": "Stores access codes for upgrading users"
+    }
+  }
+}

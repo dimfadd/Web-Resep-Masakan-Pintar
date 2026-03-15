@@ -1,0 +1,177 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - User email
+    //   - role: string (required) - 'public', 'chef', 'admin'
+    //   - createdAt: string (required) - ISO date string
+    //   - updatedAt: string (optional) - ISO date string
+    //
+    // Collection: recipes
+    // Document ID: {recipeId}
+    // Fields:
+    //   - id: string (required)
+    //   - title: string (required)
+    //   - description: string (required)
+    //   - servings: number (required)
+    //   - prepTimeMinutes: number (required)
+    //   - cookTimeMinutes: number (required)
+    //   - difficulty: string (required)
+    //   - type: string (required)
+    //   - tags: list (required)
+    //   - fitnessGoal: list (required)
+    //   - ingredients: list (required)
+    //   - steps: list (required)
+    //   - equipment: list (required)
+    //   - totalNutrition: map (required)
+    //   - nutritionPerServing: map (required)
+    //   - isFree: boolean (required)
+    //   - createdAt: string (required)
+    //   - updatedAt: string (required)
+    //   - language: string (required)
+    //   - authorId: string (required)
+    //
+    // Collection: accessCodes
+    // Document ID: {codeId}
+    // Fields:
+    //   - code: string (required)
+    //   - used: boolean (required)
+    //   - usedAt: string (optional)
+    //   - createdAt: string (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "dimasdimfad@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isChef() {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['chef', 'admin']
+      );
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             isValidEmail(data.email) &&
+             data.role in ['public', 'chef', 'admin'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidRecipe(data) {
+      return hasRequiredFields(['id', 'title', 'description', 'servings', 'prepTimeMinutes', 'cookTimeMinutes', 'difficulty', 'type', 'tags', 'fitnessGoal', 'ingredients', 'steps', 'equipment', 'totalNutrition', 'nutritionPerServing', 'isFree', 'createdAt', 'updatedAt', 'language', 'authorId']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.description is string && data.description.size() < 2000 &&
+             data.servings is number && data.servings > 0 &&
+             data.prepTimeMinutes is number && data.prepTimeMinutes >= 0 &&
+             data.cookTimeMinutes is number && data.cookTimeMinutes >= 0 &&
+             data.difficulty in ['mudah', 'sedang', 'sulit'] &&
+             data.type in ['berkuah', 'digoreng', 'dipanggang', 'dikukus', 'mentah', 'tumisan', 'rebusan'] &&
+             data.tags is list && data.tags.size() <= 20 &&
+             data.fitnessGoal is list && data.fitnessGoal.size() <= 10 &&
+             data.ingredients is list && data.ingredients.size() <= 50 &&
+             data.steps is list && data.steps.size() <= 50 &&
+             data.equipment is list && data.equipment.size() <= 20 &&
+             data.totalNutrition is map &&
+             data.nutritionPerServing is map &&
+             data.isFree is bool &&
+             isValidDateString(data.createdAt) &&
+             isValidDateString(data.updatedAt) &&
+             data.language is string && data.language.size() < 10 &&
+             data.authorId is string && data.authorId.size() > 0 && data.authorId.size() < 100;
+    }
+
+    function isValidAccessCode(data) {
+      return hasRequiredFields(['code', 'used', 'createdAt']) &&
+             data.code is string && data.code.size() > 0 && data.code.size() < 50 &&
+             data.used is bool &&
+             isValidDateString(data.createdAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.role == 'public' && isValidUser(request.resource.data);
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data)) || isAdmin();
+    }
+
+    match /recipes/{recipeId} {
+      allow read: if resource.data.isFree == true || isChef() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /accessCodes/{codeId} {
+      // Client needs to query by code and update 'used'
+      allow read: if isAdmin() || (isAuthenticated() && (
+        !resource.data.used && (
+          !('assignedEmail' in resource.data) || 
+          resource.data.assignedEmail.lower() == request.auth.token.email.lower()
+        )
+      ));
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        !resource.data.used && 
+        request.resource.data.used == true &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedAt', 'usedByEmail'])
+      );
+      allow create: if isAdmin();
+    }
+
+    match /purchaseRequests/{requestId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email.lower() == resource.data.email.lower());
+      allow create: if isAuthenticated() && request.resource.data.status == 'pending';
+      allow update: if isAdmin();
+    }
+  }
+}
