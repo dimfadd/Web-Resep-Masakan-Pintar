@@ -28,12 +28,18 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onSuccess }) => {
 
   // Load Midtrans Snap Script
   useEffect(() => {
-    const isProduction = import.meta.env.VITE_MIDTRANS_IS_PRODUCTION === 'true';
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
+    
+    // Auto-detect environment based on client key prefix
+    // Production keys start with "Mid-", Sandbox keys start with "SB-Mid-"
+    const isProduction = clientKey.startsWith('Mid-');
+    
     const midtransScriptUrl = isProduction 
       ? 'https://app.midtrans.com/snap/snap.js' 
       : 'https://app.sandbox.midtrans.com/snap/snap.js';
     
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
+    console.log(`Midtrans Mode: ${isProduction ? 'PRODUCTION' : 'SANDBOX'}`);
+    console.log(`Loading Snap from: ${midtransScriptUrl}`);
 
     const script = document.createElement('script');
     script.src = midtransScriptUrl;

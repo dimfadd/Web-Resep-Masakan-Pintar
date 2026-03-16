@@ -64,11 +64,16 @@ export default app;
 const PORT = 3000;
 
 // Midtrans Setup
+const serverKey = process.env.MIDTRANS_SERVER_KEY || '';
+const isProductionAuto = serverKey.startsWith('Mid-');
+
 const snap = new midtransClient.Snap({
-  isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
-  serverKey: process.env.MIDTRANS_SERVER_KEY,
+  isProduction: isProductionAuto,
+  serverKey: serverKey,
   clientKey: process.env.VITE_MIDTRANS_CLIENT_KEY
 });
+
+console.log(`Midtrans Backend Mode: ${isProductionAuto ? 'PRODUCTION' : 'SANDBOX'}`);
 
 // ── API ROUTES ──────────────────────────────────────────────────────────────
 
@@ -86,7 +91,8 @@ app.post('/api/payment/create', async (req, res) => {
     const parameter = {
       transaction_details: {
         order_id: orderId,
-        gross_amount: amount
+        gross_amount: Math.floor(amount),
+        currency: 'IDR'
       },
       customer_details: {
         first_name: name,
@@ -94,14 +100,16 @@ app.post('/api/payment/create', async (req, res) => {
       },
       item_details: [{
         id: plan,
-        price: amount,
+        price: Math.floor(amount),
         quantity: 1,
-        name: `Akses Chef - ${plan === 'monthly' ? 'Bulanan' : 'Tahunan'}`
+        name: `Akses Chef - ${plan === 'monthly' ? 'Bulanan' : 'Tahunan'}`,
+        category: 'Digital Goods'
       }],
       // Store metadata in custom_field1
       custom_field1: JSON.stringify({ email, plan })
     };
 
+    console.log('Creating Transaction with params:', JSON.stringify(parameter));
     const transaction = await snap.createTransaction(parameter);
     res.json({ token: transaction.token, orderId });
   } catch (error: any) {
