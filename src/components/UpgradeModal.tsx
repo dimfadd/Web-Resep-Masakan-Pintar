@@ -28,8 +28,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onSuccess }) => {
 
   // Load Midtrans Snap Script
   useEffect(() => {
-    const midtransScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_KEY'; // Fallback for dev
+    const isProduction = import.meta.env.VITE_MIDTRANS_IS_PRODUCTION === 'true';
+    const midtransScriptUrl = isProduction 
+      ? 'https://app.midtrans.com/snap/snap.js' 
+      : 'https://app.sandbox.midtrans.com/snap/snap.js';
+    
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 
     const script = document.createElement('script');
     script.src = midtransScriptUrl;
