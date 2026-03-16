@@ -377,41 +377,43 @@ const App: React.FC = () => {
         </AnimatePresence>
 
         {/* Floating Calorie Calculator Button */}
-        <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 2, duration: 0.5 }}
-              className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-stone-100 relative mb-1"
-            >
-              <p className="text-[11px] font-black text-stone-800 whitespace-nowrap flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-                Cek Gizi & Kalori Harianmu! 🍎
-              </p>
-              {/* Triangle pointer */}
-              <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-stone-100 rotate-45"></div>
-            </motion.div>
-          </AnimatePresence>
+        {view !== 'recipe_detail' && (
+          <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 2, duration: 0.5 }}
+                className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-stone-100 relative mb-1"
+              >
+                <p className="text-[11px] font-black text-stone-800 whitespace-nowrap flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+                  Cek Gizi & Kalori Harianmu! 🍎
+                </p>
+                {/* Triangle pointer */}
+                <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-stone-100 rotate-45"></div>
+              </motion.div>
+            </AnimatePresence>
 
-          <div className="relative">
-            {/* Pulsing background ring */}
-            <div className="absolute inset-0 bg-red-500 rounded-2xl animate-ping opacity-20"></div>
-            
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowCalorieCalc(true)}
-              className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
-            >
-              <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                <Calculator className="w-7 h-7" />
-              </div>
-            </motion.button>
+            <div className="relative">
+              {/* Pulsing background ring */}
+              <div className="absolute inset-0 bg-red-500 rounded-2xl animate-ping opacity-20"></div>
+              
+              <motion.button
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowCalorieCalc(true)}
+                className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
+              >
+                <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                  <Calculator className="w-7 h-7" />
+                </div>
+              </motion.button>
+            </div>
           </div>
-        </div>
+        )}
 
         {view === 'landing' && (
           <LandingPage
@@ -481,41 +483,43 @@ const App: React.FC = () => {
       </AnimatePresence>
 
       {/* Floating Calorie Calculator Button */}
-      <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 2, duration: 0.5 }}
-            className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-stone-100 relative mb-1"
-          >
-            <p className="text-[11px] font-black text-stone-800 whitespace-nowrap flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-              Cek Gizi & Kalori Harianmu! 🍎
-            </p>
-            {/* Triangle pointer */}
-            <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-stone-100 rotate-45"></div>
-          </motion.div>
-        </AnimatePresence>
+      {view !== 'recipe_detail' && (
+        <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 2, duration: 0.5 }}
+              className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-stone-100 relative mb-1"
+            >
+              <p className="text-[11px] font-black text-stone-800 whitespace-nowrap flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+                Cek Gizi & Kalori Harianmu! 🍎
+              </p>
+              {/* Triangle pointer */}
+              <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-stone-100 rotate-45"></div>
+            </motion.div>
+          </AnimatePresence>
 
-        <div className="relative">
-          {/* Pulsing background ring */}
-          <div className="absolute inset-0 bg-red-500 rounded-2xl animate-ping opacity-20"></div>
-          
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowCalorieCalc(true)}
-            className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
-          >
-            <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-              <Calculator className="w-7 h-7" />
-            </div>
-          </motion.button>
+          <div className="relative">
+            {/* Pulsing background ring */}
+            <div className="absolute inset-0 bg-red-500 rounded-2xl animate-ping opacity-20"></div>
+            
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCalorieCalc(true)}
+              className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
+            >
+              <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                <Calculator className="w-7 h-7" />
+              </div>
+            </motion.button>
+          </div>
         </div>
-      </div>
+      )}
 
       {view !== 'recipe_detail' && (
         <AppNavbar
