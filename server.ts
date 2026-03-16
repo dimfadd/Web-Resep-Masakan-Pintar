@@ -95,19 +95,34 @@ app.post('/api/payment/create', async (req, res) => {
 app.post('/api/payment/webhook', async (req, res) => {
   try {
     const notification = req.body;
+    
+    // Log for debugging in Vercel
+    console.log('Received Midtrans Notification:', JSON.stringify(notification));
+
     const statusResponse = await snap.transaction.notification(notification);
     
     const orderId = statusResponse.order_id;
     const transactionStatus = statusResponse.transaction_status;
     const fraudStatus = statusResponse.fraud_status;
 
-    console.log(`Transaction notification received. Order ID: ${orderId}. Status: ${transactionStatus}. Fraud: ${fraudStatus}`);
+    console.log(`Transaction ID: ${orderId}. Status: ${transactionStatus}. Fraud: ${fraudStatus}`);
+
+    // Handle Test Notification from Midtrans Dashboard
+    if (orderId.startsWith('payment_notif_test')) {
+      console.log('Test notification received successfully.');
+      return res.status(200).send('OK - Test Success');
+    }
 
     if (transactionStatus === 'capture' || transactionStatus === 'settlement') {
       if (fraudStatus === 'challenge') {
-        // Handle challenge
+        console.log('Transaction is challenged.');
       } else {
         // SUCCESS! Generate Access Code
+        if (!statusResponse.custom_field1) {
+          console.log('No metadata found in transaction.');
+          return res.status(200).send('OK - No Metadata');
+        }
+
         const metadata = JSON.parse(statusResponse.custom_field1);
         const { email, plan } = metadata;
 
