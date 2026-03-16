@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import dotenv from 'dotenv';
 // @ts-ignore
@@ -12,7 +13,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 dotenv.config();
 
 // Firebase Admin Setup
-import firebaseConfig from './firebase-applet-config.json';
+const firebaseConfig = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
