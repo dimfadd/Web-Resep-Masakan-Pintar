@@ -2,8 +2,16 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Recipe, GenerateParams, NutritionInfo, Ingredient, CookingStep } from "../types";
 
 const getClient = () => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Gemini API Key tidak ditemukan. Set GEMINI_API_KEY di environment.");
+  // Try multiple common environment variable names for the Gemini API key
+  // In Vite, import.meta.env is the standard way to access env vars
+  const apiKey = 
+    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+    process.env.GEMINI_API_KEY || 
+    process.env.API_KEY;
+    
+  if (!apiKey) {
+    throw new Error("Gemini API Key tidak ditemukan. Pastikan GEMINI_API_KEY sudah terpasang di environment.");
+  }
   return new GoogleGenAI({ apiKey });
 };
 

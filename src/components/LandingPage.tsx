@@ -67,10 +67,10 @@ const HeroSection: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void 
         <ChefHat className="w-3.5 h-3.5" /> Dibuat dengan 💖 untuk Masakan Lezat & Bergizi
       </div>
 
-      <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-stone-800 leading-[1.05] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
-        Resep cerdas masakan bergizi <br />
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-stone-800 leading-[1.1] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+        Resep Masakan Yang Sudah <br /> Dihitung Nilai Gizinya <br />
         <span className="relative inline-block">
-          <span className="relative z-10 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">Keluarga Indonesia</span>
+          <span className="relative z-10 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">Resep Keluarga Indonesia</span>
           <svg className="absolute -bottom-6 left-0 w-full" viewBox="0 0 300 12" fill="none">
             <path d="M2 8 Q75 2 150 8 Q225 14 298 8" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
           </svg>
@@ -78,7 +78,7 @@ const HeroSection: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void 
       </h1>
 
       <p className="text-lg sm:text-xl text-stone-600 font-medium leading-relaxed max-w-2xl mx-auto mb-6">
-        Banyak sekali resep masakan yang sudah <strong className="text-stone-800">diukur gizinya</strong> — bebas pilih masakan untuk{' '}
+        Makan tanpa ragu karena tau <strong className="text-stone-800">batasan konsumsi harian</strong>. Bebas pilih masakan untuk{' '}
         <span className="text-green-600 font-bold">menurunkan berat badan</span>,{' '}
         <span className="text-blue-600 font-bold">menaikkan berat badan</span>,{' '}
         <span className="text-amber-600 font-bold">berkuah</span>, dan masih banyak lagi.
