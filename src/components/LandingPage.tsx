@@ -50,7 +50,7 @@ const Navbar: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void }> = 
 
 // ── HERO ──────────────────────────────────────────────────────────────────
 const HeroSection: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void }> = ({ onEnterLibrary, onUpgrade }) => (
-  <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-20">
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-20">
     <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50"></div>
     <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251,191,36,0.25) 0%, transparent 70%)` }}></div>
     <div className="absolute top-32 right-10 w-72 h-72 bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
@@ -63,7 +63,7 @@ const HeroSection: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void 
     ))}
 
     <div className="relative z-10 max-w-4xl mx-auto px-5 text-center">
-      <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur border border-amber-200 text-amber-700 text-xs font-black px-4 py-2 rounded-full shadow-sm mb-8 mt-4 sm:mt-0 uppercase tracking-wider">
+      <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur border border-amber-200 text-amber-700 text-xs font-black px-4 py-2 rounded-full shadow-sm mb-6 mt-2 sm:mt-0 uppercase tracking-wider">
         <ChefHat className="w-3.5 h-3.5" /> Dibuat dengan 💖 untuk Masakan Lezat & Bergizi
       </div>
 
