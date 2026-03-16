@@ -5,6 +5,7 @@ import {
   Star, CheckCircle2, ArrowRight, Lock, Unlock, ChevronDown,
   Users, Shield, TrendingDown, Dumbbell, Soup, Heart, Filter
 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface LandingPageProps {
   onEnterLibrary: () => void;
@@ -89,8 +90,38 @@ const HeroSection: React.FC<{ onEnterLibrary: () => void; onUpgrade: () => void 
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500"></div>
         
         <div className="flex flex-col items-center text-center gap-5 relative z-10">
-          <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
-            <Heart className="w-7 h-7 fill-amber-600/10 animate-pulse" />
+          <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-inner relative overflow-visible">
+            {/* Main Center Heart */}
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="relative z-10"
+            >
+              <Heart className="w-7 h-7 fill-red-500 text-red-500" />
+            </motion.div>
+
+            {/* Floating Bubble Hearts */}
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-red-400 pointer-events-none"
+                initial={{ opacity: 0, y: 0, x: 0, scale: 0.5 }}
+                animate={{
+                  opacity: [0, 0.8, 0],
+                  y: [-10, -80 - Math.random() * 40],
+                  x: [(Math.random() - 0.5) * 10, (Math.random() - 0.5) * 80],
+                  scale: [0.5, 1.2, 0.8],
+                }}
+                transition={{
+                  duration: 2.5 + Math.random() * 1.5,
+                  repeat: Infinity,
+                  delay: i * 0.5,
+                  ease: "easeOut",
+                }}
+              >
+                <Heart className="w-4 h-4 fill-current" />
+              </motion.div>
+            ))}
           </div>
           
           <p className="text-xl sm:text-2xl text-stone-800 font-black leading-snug">
