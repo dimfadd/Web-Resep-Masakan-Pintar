@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Recipe, RecipeFilter } from '../types';
 import {
   Search, Flame, Zap, Leaf, Clock, Lock, Sparkles,
@@ -27,9 +27,29 @@ const typeEmoji: Record<string, string> = {
   mentah: '🥗', tumisan: '🥘', rebusan: '🫕',
 };
 
+const useColumns = () => {
+  const [cols, setCols] = useState(4);
+
+  useEffect(() => {
+    const updateCols = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) setCols(4);
+      else if (width >= 1024) setCols(3);
+      else if (width >= 640) setCols(2);
+      else setCols(1);
+    };
+    updateCols();
+    window.addEventListener('resize', updateCols);
+    return () => window.removeEventListener('resize', updateCols);
+  }, []);
+
+  return cols;
+};
+
 const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, onUpgrade }) => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const cols = useColumns();
 
   const filtered = recipes.filter(r => {
     if (typeFilter && r.type !== typeFilter) return false;
@@ -39,6 +59,58 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
     }
     return true;
   });
+
+  // Reorder logic: Ensure at least one free recipe per row
+  const reordered = useMemo(() => {
+    if (filtered.length === 0) return [];
+    
+    const free = filtered.filter(r => r.isFree);
+    const premium = filtered.filter(r => !r.isFree);
+    
+    if (free.length === 0 || premium.length === 0 || cols === 1) return filtered;
+
+    const total = filtered.length;
+    const rows = Math.ceil(total / cols);
+    
+    const baseFreePerRow = Math.floor(free.length / rows);
+    const extraFreeCount = free.length % rows;
+    
+    const result: Recipe[] = [];
+    let freeIdx = 0;
+    let premiumIdx = 0;
+    
+    for (let r = 0; r < rows; r++) {
+      const slotsInThisRow = Math.min(cols, total - result.length);
+      
+      // Calculate how many free recipes should be in this row
+      let freeInThisRow = baseFreePerRow + (r < extraFreeCount ? 1 : 0);
+      
+      // Ensure at least 1 free recipe if we have any left, but don't exceed slots
+      const actualFreeInThisRow = Math.min(
+        slotsInThisRow, 
+        Math.max(freeInThisRow, freeIdx < free.length ? 1 : 0)
+      );
+      
+      const premiumInThisRow = slotsInThisRow - actualFreeInThisRow;
+      
+      // Fill free
+      for (let i = 0; i < actualFreeInThisRow && freeIdx < free.length; i++) {
+        result.push(free[freeIdx++]);
+      }
+      // Fill premium
+      for (let i = 0; i < premiumInThisRow && premiumIdx < premium.length; i++) {
+        result.push(premium[premiumIdx++]);
+      }
+    }
+    
+    // If we have leftovers (shouldn't happen with correct logic, but for safety)
+    if (result.length < total) {
+      const remaining = filtered.filter(f => !result.find(r => r.id === f.id));
+      result.push(...remaining);
+    }
+    
+    return result;
+  }, [filtered, cols]);
 
   return (
     <div className="min-h-full bg-amber-50/50 overflow-y-auto custom-scrollbar">
@@ -142,7 +214,7 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {/* Recipe cards */}
-              {filtered.map(recipe => {
+              {reordered.map(recipe => {
                 const isPremium = !recipe.isFree;
                 return (
                   <div
