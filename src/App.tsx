@@ -404,14 +404,10 @@ const App: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowCalorieCalc(true)}
-              className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center gap-3 group"
+              className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
             >
-              <div className="p-2 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                <Calculator className="w-6 h-6" />
-              </div>
-              <div className="text-left pr-2">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-70 leading-none mb-1">Kalkulator</p>
-                <p className="text-sm font-black leading-none">Gizi & Kalori</p>
+              <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                <Calculator className="w-7 h-7" />
               </div>
             </motion.button>
           </div>
@@ -512,14 +508,10 @@ const App: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowCalorieCalc(true)}
-            className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center gap-3 group"
+            className="relative z-10 bg-gradient-to-br from-red-500 via-rose-600 to-red-700 text-white p-4 rounded-2xl shadow-2xl shadow-red-200 flex items-center justify-center group"
           >
-            <div className="p-2 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-              <Calculator className="w-6 h-6" />
-            </div>
-            <div className="text-left pr-2">
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-70 leading-none mb-1">Kalkulator</p>
-              <p className="text-sm font-black leading-none">Gizi & Kalori</p>
+            <div className="p-1 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+              <Calculator className="w-7 h-7" />
             </div>
           </motion.button>
         </div>
