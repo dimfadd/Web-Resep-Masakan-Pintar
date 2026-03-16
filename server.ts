@@ -118,6 +118,12 @@ app.post('/api/payment/webhook', async (req, res) => {
     // Log for debugging in Vercel
     console.log('Received Midtrans Notification:', JSON.stringify(notification));
 
+    // Handle Test Notification from Midtrans Dashboard BEFORE calling SDK
+    if (notification.order_id && notification.order_id.startsWith('payment_notif_test')) {
+      console.log('Test notification received successfully.');
+      return res.status(200).send('OK - Test Success');
+    }
+
     const statusResponse = await snap.transaction.notification(notification);
     
     const orderId = statusResponse.order_id;
@@ -125,12 +131,6 @@ app.post('/api/payment/webhook', async (req, res) => {
     const fraudStatus = statusResponse.fraud_status;
 
     console.log(`Transaction ID: ${orderId}. Status: ${transactionStatus}. Fraud: ${fraudStatus}`);
-
-    // Handle Test Notification from Midtrans Dashboard
-    if (orderId.startsWith('payment_notif_test')) {
-      console.log('Test notification received successfully.');
-      return res.status(200).send('OK - Test Success');
-    }
 
     if (transactionStatus === 'capture' || transactionStatus === 'settlement') {
       if (fraudStatus === 'challenge') {
