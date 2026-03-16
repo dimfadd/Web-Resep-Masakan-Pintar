@@ -12,24 +12,43 @@ import { getFirestore } from 'firebase-admin/firestore';
 dotenv.config();
 
 // Firebase Admin Setup
-const firebaseConfig = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
+let firebaseConfig: any;
+try {
+  const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+  if (fs.existsSync(configPath)) {
+    firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } else {
+    // Fallback to env variables if file is missing
+    firebaseConfig = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || '(default)'
+    };
+  }
+} catch (err) {
+  console.error('Error loading firebase-applet-config.json:', err);
+}
 
 // Initialize Firebase Admin
-if (admin.apps.length === 0) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-    : undefined;
+try {
+  if (admin.apps.length === 0) {
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
+      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
+      : undefined;
 
-  if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  } else {
-    // Fallback for local/Cloud Run environment
-    admin.initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+    if (serviceAccount) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log('Firebase Admin initialized with Service Account');
+    } else if (firebaseConfig && firebaseConfig.projectId) {
+      admin.initializeApp({
+        projectId: firebaseConfig.projectId,
+      });
+      console.log('Firebase Admin initialized with Project ID');
+    }
   }
+} catch (err) {
+  console.error('Firebase Admin Init Error:', err);
 }
 
 // Use the specific database ID if provided
