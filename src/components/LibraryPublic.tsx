@@ -88,7 +88,7 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
   const premiumCount = recipes.filter(r => !r.isFree).length;
 
   return (
-    <div className="min-h-full bg-amber-50/50 overflow-y-auto custom-scrollbar">
+    <div id="main-scroll-container" className="flex-1 min-h-0 bg-amber-50/50 overflow-y-auto custom-scrollbar">
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <div className="bg-white/85 backdrop-blur-xl border-b border-stone-200 shadow-md shrink-0">

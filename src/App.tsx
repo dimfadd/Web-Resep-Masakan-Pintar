@@ -151,30 +151,39 @@ const App: React.FC = () => {
   useEffect(() => {
     if (view === 'recipe_detail') {
       // Always start at top for detail view
-      const scrollables = document.querySelectorAll('.overflow-y-auto');
-      scrollables.forEach(el => el.scrollTo(0, 0));
+      const scrollable = document.getElementById('main-scroll-container');
+      if (scrollable) scrollable.scrollTo(0, 0);
       window.scrollTo(0, 0);
     } else if (['library_public', 'library_full', 'admin', 'landing'].includes(view)) {
       // Restore scroll position if we have one saved
       if (scrollPosRef.current > 0) {
-        // Use requestAnimationFrame to wait for the DOM to be ready
-        requestAnimationFrame(() => {
-          // Small timeout to ensure components have mounted
-          setTimeout(() => {
-            const scrollables = document.querySelectorAll('.overflow-y-auto');
-            scrollables.forEach(el => {
-              // Target the main scrollable containers
-              if (el.classList.contains('custom-scrollbar') || el.classList.contains('app-main-scroll')) {
-                el.scrollTo(0, scrollPosRef.current);
-              }
-            });
-          }, 0);
-        });
+        const targetPos = scrollPosRef.current;
+        let attempts = 0;
+        const maxAttempts = 20; // Try for up to 2 seconds
+        
+        const tryRestore = () => {
+          const scrollable = document.getElementById('main-scroll-container');
+          if (scrollable) {
+            scrollable.scrollTo(0, targetPos);
+            
+            // Check if it actually scrolled. Some views might need more time to render content
+            // We use a small tolerance for the comparison
+            if (Math.abs(scrollable.scrollTop - targetPos) > 5 && attempts < maxAttempts) {
+              attempts++;
+              setTimeout(tryRestore, 100);
+            }
+          } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(tryRestore, 100);
+          }
+        };
+        
+        setTimeout(tryRestore, 100);
       }
     } else {
       // Default reset for other views
-      const scrollables = document.querySelectorAll('.overflow-y-auto');
-      scrollables.forEach(el => el.scrollTo(0, 0));
+      const scrollable = document.getElementById('main-scroll-container');
+      if (scrollable) scrollable.scrollTo(0, 0);
       window.scrollTo(0, 0);
       scrollPosRef.current = 0;
     }
@@ -301,9 +310,7 @@ const App: React.FC = () => {
   // ── Open Recipe ───────────────────────────────────────────────────────
   const handleOpenRecipe = (recipe: Recipe) => {
     // Save current scroll position before switching to detail view
-    // Try to find the active scroll container
-    const scrollable = document.querySelector('.custom-scrollbar.overflow-y-auto') || 
-                       document.querySelector('.app-main-scroll.overflow-y-auto');
+    const scrollable = document.getElementById('main-scroll-container');
     if (scrollable) {
       scrollPosRef.current = scrollable.scrollTop;
     }
@@ -376,6 +383,7 @@ const App: React.FC = () => {
 
   // ── Library nav ───────────────────────────────────────────────────────
   const handleGoLibrary = () => {
+    scrollPosRef.current = 0; // Reset scroll when explicitly navigating to library
     if (userTier === 'admin' || userTier === 'chef') {
       setView('library_full');
       loadAllRecipes(); // Refresh in background
@@ -393,8 +401,7 @@ const App: React.FC = () => {
   if (userTier === 'public') {
     return (
       <div 
-        ref={scrollRef}
-        className="h-screen w-screen overflow-y-auto overflow-x-hidden app-main-scroll" 
+        className="h-full w-full overflow-hidden flex flex-col" 
         style={{ fontFamily: "'Nunito', sans-serif" }}
       >
         {isSaving && <SavingOverlay />}
@@ -452,18 +459,20 @@ const App: React.FC = () => {
         )}
 
         {view === 'landing' && (
-          <LandingPage
-            freeRecipes={freeRecipes}
-            onEnterLibrary={() => setView('library_public')}
-            onUpgrade={() => setShowUpgradeModal(true)}
-          />
+          <div id="main-scroll-container" className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+            <LandingPage
+              freeRecipes={freeRecipes}
+              onEnterLibrary={() => { scrollPosRef.current = 0; setView('library_public'); }}
+              onUpgrade={() => setShowUpgradeModal(true)}
+            />
+          </div>
         )}
 
         {view === 'library_public' && (
-          <div className="flex flex-col min-h-screen">
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             {/* Simple public navbar */}
-            <nav className="bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-5 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-              <button onClick={() => setView('landing')} className="flex items-center gap-2 group">
+            <nav className="bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-5 py-3 flex items-center justify-between shadow-md shrink-0">
+              <button onClick={() => { scrollPosRef.current = 0; setView('landing'); }} className="flex items-center gap-2 group">
                 <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
                   <ChefHat className="w-4 h-4 text-white" />
                 </div>
@@ -476,19 +485,17 @@ const App: React.FC = () => {
                 <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Upgrade ke Chef
               </button>
             </nav>
-            <div className="flex-1">
-              <LibraryPublic
-                recipes={allRecipes}
-                onOpenRecipe={handleOpenRecipe}
-                onUpgrade={() => setShowUpgradeModal(true)}
-              />
-            </div>
+            <LibraryPublic
+              recipes={allRecipes}
+              onOpenRecipe={handleOpenRecipe}
+              onUpgrade={() => setShowUpgradeModal(true)}
+            />
           </div>
         )}
 
         {view === 'recipe_detail' && currentRecipe && (
-          <div className="min-h-screen bg-stone-100 flex flex-col">
-            <nav className="bg-white border-b border-stone-200 px-5 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-stone-100">
+            <nav className="bg-white border-b border-stone-200 px-5 py-3 flex items-center justify-between shadow-sm shrink-0">
               <button onClick={handleBack} className="flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-amber-600 transition">
                 ← Kembali
               </button>
@@ -497,7 +504,7 @@ const App: React.FC = () => {
                 <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Upgrade ke Chef
               </button>
             </nav>
-            <div className="flex-1 py-6 px-4 sm:px-6 overflow-y-auto">
+            <div id="main-scroll-container" className="flex-1 min-h-0 overflow-y-auto custom-scrollbar py-6 px-4 sm:px-6">
               <RecipeCard recipe={currentRecipe} onClose={handleBack} />
             </div>
           </div>
@@ -508,7 +515,7 @@ const App: React.FC = () => {
 
   // ADMIN + CHEF flow — with nav bar
   return (
-    <div className="h-screen w-screen flex flex-col bg-stone-100 overflow-hidden" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="h-full w-full flex flex-col bg-stone-100 overflow-hidden" style={{ fontFamily: "'Nunito', sans-serif" }}>
       {isSaving && <SavingOverlay />}
       {toast && <Toast message={toast.message} type={toast.type} />}
 
@@ -600,7 +607,7 @@ const App: React.FC = () => {
 
         {/* RECIPE DETAIL (chef + admin) */}
         {view === 'recipe_detail' && currentRecipe && (
-          <div className="flex-1 overflow-y-auto bg-stone-100">
+          <div id="main-scroll-container" className="flex-1 min-h-0 overflow-y-auto bg-stone-100 custom-scrollbar">
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-4 py-3 flex items-center justify-between shadow-md">
               <button onClick={handleBack} className="text-sm font-bold text-stone-600 hover:text-amber-600 transition">
                 ← Kembali

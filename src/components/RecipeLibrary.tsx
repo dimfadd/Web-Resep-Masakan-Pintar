@@ -250,7 +250,7 @@ const RecipeLibrary: React.FC<RecipeLibraryProps> = ({
   const hasMoreLocked = !isPremium && !isAdmin && filteredRecipes.length > 10;
 
   return (
-    <div className="h-full flex flex-col bg-stone-50 overflow-y-auto custom-scrollbar">
+    <div id="main-scroll-container" className="flex-1 min-h-0 flex flex-col bg-stone-50 overflow-y-auto custom-scrollbar">
       
       {/* ── LIBRARY HEADER ────────────────────────────────────────────── */}
       <div className="bg-white border-b border-stone-200 px-6 py-5 shadow-sm shrink-0">

@@ -502,7 +502,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'generate' | 'manage' | 'codes' | 'orders'>('generate');
 
   return (
-    <div className="h-full flex flex-col bg-stone-100 overflow-y-auto custom-scrollbar">
+    <div id="main-scroll-container" className="flex-1 min-h-0 flex flex-col bg-stone-100 overflow-y-auto custom-scrollbar">
       {/* Admin header */}
       <div className="bg-stone-900 text-white px-6 py-4 shrink-0">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
