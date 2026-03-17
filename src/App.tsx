@@ -388,7 +388,7 @@ const App: React.FC = () => {
               >
                 <p className="text-[11px] font-black text-stone-800 whitespace-nowrap flex items-center gap-2">
                   <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-                  Cek Gizi & Kalori Harianmu! 🍎
+                  Cek Kebutuhan Kalori Harianmu! 🍎
                 </p>
                 {/* Triangle pointer */}
                 <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-stone-100 rotate-45"></div>
