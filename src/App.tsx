@@ -145,11 +145,39 @@ const App: React.FC = () => {
   const [showCalorieCalc, setShowCalorieCalc] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ── Scroll to top when view changes ───────────────────────────────────
+  // ── Scroll position preservation ──────────────────────────────────────
+  const scrollPosRef = useRef(0);
+
   useEffect(() => {
-    const scrollables = document.querySelectorAll('.overflow-y-auto');
-    scrollables.forEach(el => el.scrollTo(0, 0));
-    window.scrollTo(0, 0);
+    if (view === 'recipe_detail') {
+      // Always start at top for detail view
+      const scrollables = document.querySelectorAll('.overflow-y-auto');
+      scrollables.forEach(el => el.scrollTo(0, 0));
+      window.scrollTo(0, 0);
+    } else if (['library_public', 'library_full', 'admin', 'landing'].includes(view)) {
+      // Restore scroll position if we have one saved
+      if (scrollPosRef.current > 0) {
+        // Use requestAnimationFrame to wait for the DOM to be ready
+        requestAnimationFrame(() => {
+          // Small timeout to ensure components have mounted
+          setTimeout(() => {
+            const scrollables = document.querySelectorAll('.overflow-y-auto');
+            scrollables.forEach(el => {
+              // Target the main scrollable containers
+              if (el.classList.contains('custom-scrollbar') || el.classList.contains('app-main-scroll')) {
+                el.scrollTo(0, scrollPosRef.current);
+              }
+            });
+          }, 0);
+        });
+      }
+    } else {
+      // Default reset for other views
+      const scrollables = document.querySelectorAll('.overflow-y-auto');
+      scrollables.forEach(el => el.scrollTo(0, 0));
+      window.scrollTo(0, 0);
+      scrollPosRef.current = 0;
+    }
   }, [view]);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -272,6 +300,14 @@ const App: React.FC = () => {
 
   // ── Open Recipe ───────────────────────────────────────────────────────
   const handleOpenRecipe = (recipe: Recipe) => {
+    // Save current scroll position before switching to detail view
+    // Try to find the active scroll container
+    const scrollable = document.querySelector('.custom-scrollbar.overflow-y-auto') || 
+                       document.querySelector('.app-main-scroll.overflow-y-auto');
+    if (scrollable) {
+      scrollPosRef.current = scrollable.scrollTop;
+    }
+    
     setPreviousView(view);
     setCurrentRecipe(recipe);
     setView('recipe_detail');
@@ -358,7 +394,7 @@ const App: React.FC = () => {
     return (
       <div 
         ref={scrollRef}
-        className="h-screen w-screen overflow-y-auto overflow-x-hidden" 
+        className="h-screen w-screen overflow-y-auto overflow-x-hidden app-main-scroll" 
         style={{ fontFamily: "'Nunito', sans-serif" }}
       >
         {isSaving && <SavingOverlay />}
