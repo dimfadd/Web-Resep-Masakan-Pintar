@@ -141,6 +141,8 @@ const PRESET_GOALS = [
   { id: 'rendah kalori', label: 'Rendah Kalori', icon: <TrendingUp className="w-4 h-4" /> },
   { id: 'tinggi serat', label: 'Tinggi Serat', icon: <Leaf className="w-4 h-4" /> },
   { id: 'rendah karbo', label: 'Rendah Karbo', icon: <Star className="w-4 h-4" /> },
+  { id: 'low-cal-high-protein', label: 'Rendah Kalori Tinggi Protein', icon: <Zap className="w-4 h-4" /> },
+  { id: 'low-cal-high-fiber', label: 'Rendah Kalori Tinggi Serat', icon: <Leaf className="w-4 h-4" /> },
 ];
 
 const TYPE_FILTERS = ['berkuah', 'digoreng', 'dipanggang', 'dikukus', 'tumisan', 'rebusan', 'mentah'];
@@ -203,9 +205,26 @@ const RecipeLibrary: React.FC<RecipeLibraryProps> = ({
       // Difficulty
       if (filter.difficulty.length > 0 && !filter.difficulty.includes(recipe.difficulty)) return false;
 
+      // Smart Filters
+      if (activeGoalPreset === 'low-cal-high-protein') {
+        if (recipe.nutritionPerServing.calories > 400 || recipe.nutritionPerServing.protein < 20) return false;
+      }
+      if (activeGoalPreset === 'low-cal-high-fiber') {
+        if (recipe.nutritionPerServing.calories > 400 || recipe.nutritionPerServing.fiber < 8) return false;
+      }
+
       return true;
     });
-  }, [recipes, filter]);
+  }, [recipes, filter, activeGoalPreset]);
+
+  const reordered = useMemo(() => {
+    const free = filteredRecipes.filter(r => r.isFree);
+    const premium = filteredRecipes.filter(r => !r.isFree);
+    return [...free, ...premium];
+  }, [filteredRecipes]);
+
+  const freeCount = recipes.filter(r => r.isFree).length;
+  const premiumCount = recipes.filter(r => !r.isFree).length;
 
   const toggleType = (type: string) => {
     setFilter(prev => ({
@@ -239,7 +258,9 @@ const RecipeLibrary: React.FC<RecipeLibraryProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-black text-stone-800">📚 Pustaka Resep</h1>
-              <p className="text-sm text-stone-500">{filteredRecipes.length} dari {recipes.length} resep</p>
+              <p className="text-sm text-stone-500 font-semibold">
+                Tersedia <span className="text-green-600">{freeCount} resep GRATIS</span> dan <span className="text-amber-600">{premiumCount} resep PREMIUM</span>
+              </p>
             </div>
             {isAdmin && (
               <button onClick={onCreateNew}
@@ -399,7 +420,7 @@ const RecipeLibrary: React.FC<RecipeLibraryProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {displayedRecipes.map(recipe => (
+              {reordered.slice(0, isPremium || isAdmin ? undefined : 10).map(recipe => (
                 <RecipeMiniCard
                   key={recipe.id}
                   recipe={recipe}

@@ -22,6 +22,11 @@ const TYPE_FILTERS = [
   { id: 'mentah', label: '🥗 Salad' },
 ];
 
+const SMART_FILTERS = [
+  { id: 'low-cal-high-protein', label: '⚡ Rendah Kalori Tinggi Protein' },
+  { id: 'low-cal-high-fiber', label: '🥗 Rendah Kalori Tinggi Serat' },
+];
+
 const typeEmoji: Record<string, string> = {
   berkuah: '🍲', digoreng: '🍳', dipanggang: '🔥', dikukus: '♨️',
   mentah: '🥗', tumisan: '🥘', rebusan: '🫕',
@@ -49,10 +54,19 @@ const useColumns = () => {
 const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, onUpgrade }) => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [smartFilter, setSmartFilter] = useState('');
   const cols = useColumns();
 
   const filtered = recipes.filter(r => {
     if (typeFilter && r.type !== typeFilter) return false;
+    
+    if (smartFilter === 'low-cal-high-protein') {
+      if (r.nutritionPerServing.calories > 400 || r.nutritionPerServing.protein < 20) return false;
+    }
+    if (smartFilter === 'low-cal-high-fiber') {
+      if (r.nutritionPerServing.calories > 400 || r.nutritionPerServing.fiber < 8) return false;
+    }
+
     if (search) {
       const q = search.toLowerCase();
       return r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
@@ -60,57 +74,18 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
     return true;
   });
 
-  // Reorder logic: Ensure at least one free recipe per row
+  // Reorder logic: Put all free recipes at the top
   const reordered = useMemo(() => {
     if (filtered.length === 0) return [];
     
     const free = filtered.filter(r => r.isFree);
     const premium = filtered.filter(r => !r.isFree);
     
-    if (free.length === 0 || premium.length === 0 || cols === 1) return filtered;
+    return [...free, ...premium];
+  }, [filtered]);
 
-    const total = filtered.length;
-    const rows = Math.ceil(total / cols);
-    
-    const baseFreePerRow = Math.floor(free.length / rows);
-    const extraFreeCount = free.length % rows;
-    
-    const result: Recipe[] = [];
-    let freeIdx = 0;
-    let premiumIdx = 0;
-    
-    for (let r = 0; r < rows; r++) {
-      const slotsInThisRow = Math.min(cols, total - result.length);
-      
-      // Calculate how many free recipes should be in this row
-      let freeInThisRow = baseFreePerRow + (r < extraFreeCount ? 1 : 0);
-      
-      // Ensure at least 1 free recipe if we have any left, but don't exceed slots
-      const actualFreeInThisRow = Math.min(
-        slotsInThisRow, 
-        Math.max(freeInThisRow, freeIdx < free.length ? 1 : 0)
-      );
-      
-      const premiumInThisRow = slotsInThisRow - actualFreeInThisRow;
-      
-      // Fill free
-      for (let i = 0; i < actualFreeInThisRow && freeIdx < free.length; i++) {
-        result.push(free[freeIdx++]);
-      }
-      // Fill premium
-      for (let i = 0; i < premiumInThisRow && premiumIdx < premium.length; i++) {
-        result.push(premium[premiumIdx++]);
-      }
-    }
-    
-    // If we have leftovers (shouldn't happen with correct logic, but for safety)
-    if (result.length < total) {
-      const remaining = filtered.filter(f => !result.find(r => r.id === f.id));
-      result.push(...remaining);
-    }
-    
-    return result;
-  }, [filtered, cols]);
+  const freeCount = recipes.filter(r => r.isFree).length;
+  const premiumCount = recipes.filter(r => !r.isFree).length;
 
   return (
     <div className="min-h-full bg-amber-50/50 overflow-y-auto custom-scrollbar">
@@ -121,7 +96,9 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-black text-stone-800">📚 Pustaka Resep</h1>
-              <p className="text-xs text-stone-500 font-semibold">{recipes.length} resep gratis tersedia</p>
+              <p className="text-[10px] sm:text-xs text-stone-500 font-semibold">
+                Tersedia <span className="text-green-600">{freeCount} resep GRATIS</span> dan <span className="text-amber-600">{premiumCount} resep PREMIUM</span>
+              </p>
             </div>
             <button
               onClick={onUpgrade}
@@ -149,15 +126,32 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
           </div>
 
           {/* Type filters */}
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar mb-3">
             {TYPE_FILTERS.map(f => (
               <button
                 key={f.id}
-                onClick={() => setTypeFilter(f.id)}
+                onClick={() => { setTypeFilter(f.id); if (f.id) setSmartFilter(''); }}
                 className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border
                   ${typeFilter === f.id
                     ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-200'
                     : 'bg-white text-stone-600 border-stone-200 hover:border-amber-300 hover:text-amber-700'}`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Smart filters */}
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <span className="text-[10px] font-black text-stone-400 uppercase tracking-wider self-center mr-1">Filter Pintar:</span>
+            {SMART_FILTERS.map(f => (
+              <button
+                key={f.id}
+                onClick={() => { setSmartFilter(smartFilter === f.id ? '' : f.id); if (f.id) setTypeFilter(''); }}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border
+                  ${smartFilter === f.id
+                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-200'
+                    : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-300 hover:text-emerald-700'}`}
               >
                 {f.label}
               </button>
@@ -203,10 +197,10 @@ const LibraryPublic: React.FC<LibraryPublicProps> = ({ recipes, onOpenRecipe, on
           <>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-black text-stone-700">
-                {typeFilter || search ? `${filtered.length} Hasil` : 'Semua Resep'}
+                {typeFilter || smartFilter || search ? `${filtered.length} Hasil` : 'Semua Resep'}
               </h2>
-              {(typeFilter || search) && (
-                <button onClick={() => { setSearch(''); setTypeFilter(''); }} className="text-xs text-stone-400 hover:text-red-500 font-bold flex items-center gap-1 transition">
+              {(typeFilter || smartFilter || search) && (
+                <button onClick={() => { setSearch(''); setTypeFilter(''); setSmartFilter(''); }} className="text-xs text-stone-400 hover:text-red-500 font-bold flex items-center gap-1 transition">
                   <X className="w-3 h-3" /> Reset
                 </button>
               )}

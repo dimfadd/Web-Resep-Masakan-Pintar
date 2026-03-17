@@ -28,10 +28,25 @@ const NutritionBadge: React.FC<{ icon: React.ReactNode; label: string; value: st
 
 // ─── INGREDIENT ROW ───────────────────────────────────────────────────────
 
-const IngredientRow: React.FC<{ ingredient: Ingredient; index: number }> = ({ ingredient, index }) => {
+const IngredientRow: React.FC<{ ingredient: Ingredient; index: number; multiplier: number }> = ({ ingredient, index, multiplier }) => {
   const [expanded, setExpanded] = useState(false);
+  
+  const scale = (val: number) => Math.round(val * multiplier * 10) / 10;
+  const scaleInt = (val: number) => Math.round(val * multiplier);
+
   const hasExtraNutrition = ingredient.nutrition.vitaminC || ingredient.nutrition.vitaminA || 
     ingredient.nutrition.calcium || ingredient.nutrition.iron || ingredient.nutrition.potassium;
+
+  // Helper to scale amount string if it starts with a number
+  const scaleAmount = (amount: string) => {
+    const match = amount.match(/^(\d+(\.\d+)?)\s*(.*)$/);
+    if (match) {
+      const num = parseFloat(match[1]);
+      const unit = match[3];
+      return `${Math.round(num * multiplier * 100) / 100} ${unit}`;
+    }
+    return amount;
+  };
 
   const categoryColors: Record<string, string> = {
     protein: 'bg-red-100 text-red-700 border-red-200',
@@ -61,7 +76,7 @@ const IngredientRow: React.FC<{ ingredient: Ingredient; index: number }> = ({ in
               <span className="text-[10px] text-stone-500 italic">({ingredient.notes})</span>
             )}
           </div>
-          <span className="text-xs font-semibold text-amber-700">{ingredient.amount}</span>
+          <span className="text-xs font-semibold text-amber-700">{scaleAmount(ingredient.amount)}</span>
         </div>
 
         {/* Category */}
@@ -71,8 +86,8 @@ const IngredientRow: React.FC<{ ingredient: Ingredient; index: number }> = ({ in
 
         {/* Quick nutrition */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-black text-orange-600">{ingredient.nutrition.calories} kal</span>
-          <span className="text-[10px] text-stone-500">{ingredient.nutrition.protein}g P</span>
+          <span className="text-xs font-black text-orange-600">{scaleInt(ingredient.nutrition.calories)} kal</span>
+          <span className="text-[10px] text-stone-500">{scale(ingredient.nutrition.protein)}g P</span>
           <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
@@ -83,11 +98,11 @@ const IngredientRow: React.FC<{ ingredient: Ingredient; index: number }> = ({ in
           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">Kandungan Nutrisi</p>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {[
-              { label: 'Kalori', val: `${ingredient.nutrition.calories} kkal`, color: 'text-orange-600' },
-              { label: 'Protein', val: `${ingredient.nutrition.protein}g`, color: 'text-red-600' },
-              { label: 'Karbo', val: `${ingredient.nutrition.carbs}g`, color: 'text-amber-600' },
-              { label: 'Lemak', val: `${ingredient.nutrition.fat}g`, color: 'text-yellow-600' },
-              { label: 'Serat', val: `${ingredient.nutrition.fiber}g`, color: 'text-green-600' },
+              { label: 'Kalori', val: `${scaleInt(ingredient.nutrition.calories)} kkal`, color: 'text-orange-600' },
+              { label: 'Protein', val: `${scale(ingredient.nutrition.protein)}g`, color: 'text-red-600' },
+              { label: 'Karbo', val: `${scale(ingredient.nutrition.carbs)}g`, color: 'text-amber-600' },
+              { label: 'Lemak', val: `${scale(ingredient.nutrition.fat)}g`, color: 'text-yellow-600' },
+              { label: 'Serat', val: `${scale(ingredient.nutrition.fiber)}g`, color: 'text-green-600' },
             ].map(item => (
               <div key={item.label} className="bg-white rounded-lg p-2 text-center shadow-sm border border-stone-100">
                 <div className={`text-xs font-black ${item.color}`}>{item.val}</div>
@@ -100,27 +115,27 @@ const IngredientRow: React.FC<{ ingredient: Ingredient; index: number }> = ({ in
             <div className="mt-2 flex flex-wrap gap-2">
               {ingredient.nutrition.vitaminC !== undefined && ingredient.nutrition.vitaminC > 0 && (
                 <span className="text-[10px] bg-orange-50 border border-orange-200 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
-                  Vit C: {ingredient.nutrition.vitaminC}mg
+                  Vit C: {scale(ingredient.nutrition.vitaminC)}mg
                 </span>
               )}
               {ingredient.nutrition.vitaminA !== undefined && ingredient.nutrition.vitaminA > 0 && (
                 <span className="text-[10px] bg-yellow-50 border border-yellow-200 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">
-                  Vit A: {ingredient.nutrition.vitaminA}mcg
+                  Vit A: {scale(ingredient.nutrition.vitaminA)}mcg
                 </span>
               )}
               {ingredient.nutrition.calcium !== undefined && ingredient.nutrition.calcium > 0 && (
                 <span className="text-[10px] bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
-                  Kalsium: {ingredient.nutrition.calcium}mg
+                  Kalsium: {scale(ingredient.nutrition.calcium)}mg
                 </span>
               )}
               {ingredient.nutrition.iron !== undefined && ingredient.nutrition.iron > 0 && (
                 <span className="text-[10px] bg-red-50 border border-red-200 text-red-700 px-2 py-0.5 rounded-full font-semibold">
-                  Zat Besi: {ingredient.nutrition.iron}mg
+                  Zat Besi: {scale(ingredient.nutrition.iron)}mg
                 </span>
               )}
               {ingredient.nutrition.potassium !== undefined && ingredient.nutrition.potassium > 0 && (
                 <span className="text-[10px] bg-purple-50 border border-purple-200 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
-                  Kalium: {ingredient.nutrition.potassium}mg
+                  Kalium: {scale(ingredient.nutrition.potassium)}mg
                 </span>
               )}
             </div>
@@ -360,7 +375,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClose, onSave, isSave
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-5 h-5 text-amber-600" />
-              <h2 className="text-base font-black text-stone-700 uppercase tracking-wider">Nilai Gizi per Porsi</h2>
+              <h2 className="text-base font-black text-stone-700 uppercase tracking-wider">Nilai Gizi ({actualServings} Porsi)</h2>
             </div>
 
             {/* Main macros */}
@@ -368,35 +383,35 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClose, onSave, isSave
               <NutritionBadge
                 icon={<Flame className="w-4 h-4" />}
                 label="Kalori"
-                value={`${n.calories}`}
+                value={`${Math.round(n.calories * servingsMultiplier)}`}
                 color="text-orange-600"
                 bg="bg-orange-50"
               />
               <NutritionBadge
                 icon={<Zap className="w-4 h-4" />}
                 label="Protein"
-                value={`${n.protein}g`}
+                value={`${Math.round(n.protein * servingsMultiplier * 10) / 10}g`}
                 color="text-red-600"
                 bg="bg-red-50"
               />
               <NutritionBadge
                 icon={<span className="text-sm font-black">CH</span>}
                 label="Karbo"
-                value={`${n.carbs}g`}
+                value={`${Math.round(n.carbs * servingsMultiplier * 10) / 10}g`}
                 color="text-amber-700"
                 bg="bg-amber-50"
               />
               <NutritionBadge
                 icon={<Droplets className="w-4 h-4" />}
                 label="Lemak"
-                value={`${n.fat}g`}
+                value={`${Math.round(n.fat * servingsMultiplier * 10) / 10}g`}
                 color="text-yellow-700"
                 bg="bg-yellow-50"
               />
               <NutritionBadge
                 icon={<Leaf className="w-4 h-4" />}
                 label="Serat"
-                value={`${n.fiber}g`}
+                value={`${Math.round(n.fiber * servingsMultiplier * 10) / 10}g`}
                 color="text-green-700"
                 bg="bg-green-50"
               />
@@ -405,12 +420,12 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClose, onSave, isSave
             {/* Micro nutrients */}
             {(n.vitaminC || n.vitaminA || n.calcium || n.iron || n.potassium || n.sodium) ? (
               <div className="mt-3 flex flex-wrap gap-2">
-                {n.sodium && n.sodium > 0 ? <span className="text-[11px] font-bold bg-stone-100 text-stone-600 px-3 py-1 rounded-full">Natrium: {n.sodium}mg</span> : null}
-                {n.vitaminC && n.vitaminC > 0 ? <span className="text-[11px] font-bold bg-orange-50 text-orange-600 px-3 py-1 rounded-full">Vitamin C: {n.vitaminC}mg</span> : null}
-                {n.vitaminA && n.vitaminA > 0 ? <span className="text-[11px] font-bold bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full">Vitamin A: {n.vitaminA}mcg</span> : null}
-                {n.calcium && n.calcium > 0 ? <span className="text-[11px] font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full">Kalsium: {n.calcium}mg</span> : null}
-                {n.iron && n.iron > 0 ? <span className="text-[11px] font-bold bg-red-50 text-red-600 px-3 py-1 rounded-full">Zat Besi: {n.iron}mg</span> : null}
-                {n.potassium && n.potassium > 0 ? <span className="text-[11px] font-bold bg-purple-50 text-purple-600 px-3 py-1 rounded-full">Kalium: {n.potassium}mg</span> : null}
+                {n.sodium && n.sodium > 0 ? <span className="text-[11px] font-bold bg-stone-100 text-stone-600 px-3 py-1 rounded-full">Natrium: {Math.round(n.sodium * servingsMultiplier)}mg</span> : null}
+                {n.vitaminC && n.vitaminC > 0 ? <span className="text-[11px] font-bold bg-orange-50 text-orange-600 px-3 py-1 rounded-full">Vitamin C: {Math.round(n.vitaminC * servingsMultiplier * 10) / 10}mg</span> : null}
+                {n.vitaminA && n.vitaminA > 0 ? <span className="text-[11px] font-bold bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full">Vitamin A: {Math.round(n.vitaminA * servingsMultiplier * 10) / 10}mcg</span> : null}
+                {n.calcium && n.calcium > 0 ? <span className="text-[11px] font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full">Kalsium: {Math.round(n.calcium * servingsMultiplier * 10) / 10}mg</span> : null}
+                {n.iron && n.iron > 0 ? <span className="text-[11px] font-bold bg-red-50 text-red-600 px-3 py-1 rounded-full">Zat Besi: {Math.round(n.iron * servingsMultiplier * 10) / 10}mg</span> : null}
+                {n.potassium && n.potassium > 0 ? <span className="text-[11px] font-bold bg-purple-50 text-purple-600 px-3 py-1 rounded-full">Kalium: {Math.round(n.potassium * servingsMultiplier * 10) / 10}mg</span> : null}
               </div>
             ) : null}
 
@@ -470,7 +485,12 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClose, onSave, isSave
                 </h3>
                 <div className="space-y-2">
                   {ingredients.map((ing, i) => (
-                    <IngredientRow key={ing.id} ingredient={ing} index={recipe.ingredients.indexOf(ing)} />
+                    <IngredientRow 
+                      key={ing.id} 
+                      ingredient={ing} 
+                      index={recipe.ingredients.indexOf(ing)} 
+                      multiplier={servingsMultiplier}
+                    />
                   ))}
                 </div>
               </div>
