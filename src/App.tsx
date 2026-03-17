@@ -150,10 +150,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (view === 'recipe_detail') {
-      // Always start at top for detail view
-      const scrollable = document.getElementById('main-scroll-container');
-      if (scrollable) scrollable.scrollTo(0, 0);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } else if (['library_public', 'library_full', 'admin', 'landing'].includes(view)) {
       // Restore scroll position if we have one saved
       if (scrollPosRef.current > 0) {
@@ -162,29 +159,22 @@ const App: React.FC = () => {
         const maxAttempts = 20; // Try for up to 2 seconds
         
         const tryRestore = () => {
-          const scrollable = document.getElementById('main-scroll-container');
-          if (scrollable) {
-            scrollable.scrollTo(0, targetPos);
-            
-            // Check if it actually scrolled. Some views might need more time to render content
-            // We use a small tolerance for the comparison
-            if (Math.abs(scrollable.scrollTop - targetPos) > 5 && attempts < maxAttempts) {
-              attempts++;
-              setTimeout(tryRestore, 100);
-            }
-          } else if (attempts < maxAttempts) {
+          window.scrollTo({ top: targetPos, behavior: 'instant' });
+          
+          // Check if it actually scrolled. Some views might need more time to render content
+          if (Math.abs(window.scrollY - targetPos) > 5 && attempts < maxAttempts) {
             attempts++;
             setTimeout(tryRestore, 100);
           }
         };
         
         setTimeout(tryRestore, 100);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' });
       }
     } else {
       // Default reset for other views
-      const scrollable = document.getElementById('main-scroll-container');
-      if (scrollable) scrollable.scrollTo(0, 0);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'instant' });
       scrollPosRef.current = 0;
     }
   }, [view]);
@@ -310,10 +300,7 @@ const App: React.FC = () => {
   // ── Open Recipe ───────────────────────────────────────────────────────
   const handleOpenRecipe = (recipe: Recipe) => {
     // Save current scroll position before switching to detail view
-    const scrollable = document.getElementById('main-scroll-container');
-    if (scrollable) {
-      scrollPosRef.current = scrollable.scrollTop;
-    }
+    scrollPosRef.current = window.scrollY;
     
     setPreviousView(view);
     setCurrentRecipe(recipe);
@@ -401,7 +388,7 @@ const App: React.FC = () => {
   if (userTier === 'public') {
     return (
       <div 
-        className="h-full w-full overflow-hidden flex flex-col" 
+        className="min-h-screen w-full flex flex-col" 
         style={{ fontFamily: "'Nunito', sans-serif" }}
       >
         {isSaving && <SavingOverlay />}
@@ -459,19 +446,17 @@ const App: React.FC = () => {
         )}
 
         {view === 'landing' && (
-          <div id="main-scroll-container" className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-            <LandingPage
-              freeRecipes={freeRecipes}
-              onEnterLibrary={() => { scrollPosRef.current = 0; setView('library_public'); }}
-              onUpgrade={() => setShowUpgradeModal(true)}
-            />
-          </div>
+          <LandingPage
+            freeRecipes={freeRecipes}
+            onEnterLibrary={() => { scrollPosRef.current = 0; setView('library_public'); }}
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
         )}
 
         {view === 'library_public' && (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col">
             {/* Simple public navbar */}
-            <nav className="bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-5 py-3 flex items-center justify-between shadow-md shrink-0">
+            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-5 py-3 flex items-center justify-between shadow-md shrink-0">
               <button onClick={() => { scrollPosRef.current = 0; setView('landing'); }} className="flex items-center gap-2 group">
                 <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
                   <ChefHat className="w-4 h-4 text-white" />
@@ -494,7 +479,7 @@ const App: React.FC = () => {
         )}
 
         {view === 'recipe_detail' && currentRecipe && (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-stone-100">
+          <div className="flex-1 flex flex-col bg-stone-100">
             <nav className="bg-white border-b border-stone-200 px-5 py-3 flex items-center justify-between shadow-sm shrink-0">
               <button onClick={handleBack} className="flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-amber-600 transition">
                 ← Kembali
@@ -515,7 +500,7 @@ const App: React.FC = () => {
 
   // ADMIN + CHEF flow — with nav bar
   return (
-    <div className="h-full w-full flex flex-col bg-stone-100 overflow-hidden" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="min-h-screen w-full flex flex-col bg-stone-100" style={{ fontFamily: "'Nunito', sans-serif" }}>
       {isSaving && <SavingOverlay />}
       {toast && <Toast message={toast.message} type={toast.type} />}
 
@@ -576,7 +561,7 @@ const App: React.FC = () => {
         />
       )}
 
-      <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+      <main className="flex-1 flex flex-col">
 
         {/* ADMIN PANEL */}
         {view === 'admin' && userTier === 'admin' && (
@@ -607,7 +592,7 @@ const App: React.FC = () => {
 
         {/* RECIPE DETAIL (chef + admin) */}
         {view === 'recipe_detail' && currentRecipe && (
-          <div id="main-scroll-container" className="flex-1 min-h-0 overflow-y-auto bg-stone-100 custom-scrollbar">
+          <div id="main-scroll-container" className="flex-1 bg-stone-100">
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b border-stone-200 px-4 py-3 flex items-center justify-between shadow-md">
               <button onClick={handleBack} className="text-sm font-bold text-stone-600 hover:text-amber-600 transition">
                 ← Kembali

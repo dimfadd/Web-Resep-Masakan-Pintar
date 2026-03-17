@@ -423,7 +423,7 @@ const Footer: React.FC<{ onUpgrade: () => void }> = ({ onUpgrade }) => (
 
 // ── MAIN EXPORT ───────────────────────────────────────────────────────────
 const LandingPage: React.FC<LandingPageProps> = ({ onEnterLibrary, onUpgrade, freeRecipes }) => (
-  <div className="min-h-screen" style={{ fontFamily: "'Nunito', sans-serif" }}>
+  <div className="w-full min-h-screen" style={{ fontFamily: "'Nunito', sans-serif" }}>
     <Navbar onEnterLibrary={onEnterLibrary} onUpgrade={onUpgrade} />
     <HeroSection onEnterLibrary={onEnterLibrary} onUpgrade={onUpgrade} />
     <FreeRecipesTeaser 
