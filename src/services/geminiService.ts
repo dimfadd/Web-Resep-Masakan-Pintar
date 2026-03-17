@@ -1,19 +1,4 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Recipe, GenerateParams, NutritionInfo, Ingredient, CookingStep } from "../types";
-
-const getClient = () => {
-  // Try multiple common environment variable names for the Gemini API key
-  // In Vite, import.meta.env is the standard way to access env vars
-  const apiKey = 
-    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-    process.env.GEMINI_API_KEY || 
-    process.env.API_KEY;
-    
-  if (!apiKey) {
-    throw new Error("Gemini API Key tidak ditemukan. Pastikan GEMINI_API_KEY sudah terpasang di environment.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
 
 // ─── NUTRITION CALCULATION HELPER ─────────────────────────────────────────
 
@@ -71,8 +56,6 @@ const autoTagFitness = (nutrition: NutritionInfo): Recipe['fitnessGoal'] => {
 // ─── MAIN GENERATE FUNCTION ───────────────────────────────────────────────
 
 export const generateRecipe = async (params: GenerateParams): Promise<Recipe> => {
-  const ai = getClient();
-
   const servings = params.servings || 4;
 
   const systemPrompt = `Kamu adalah Chef dan Ahli Gizi profesional Indonesia.
@@ -97,43 +80,43 @@ Pastikan:
 - Langkah detail minimal 6-10 langkah
 - Tips memasak yang berguna di setiap langkah penting`;
 
-  const responseSchema: Schema = {
-    type: Type.OBJECT,
+  const responseSchema = {
+    type: "OBJECT",
     properties: {
-      title: { type: Type.STRING },
-      subtitle: { type: Type.STRING },
-      description: { type: Type.STRING },
-      origin: { type: Type.STRING },
-      servings: { type: Type.INTEGER },
-      prepTimeMinutes: { type: Type.INTEGER },
-      cookTimeMinutes: { type: Type.INTEGER },
-      difficulty: { type: Type.STRING, enum: ['mudah', 'sedang', 'sulit'] },
-      type: { type: Type.STRING, enum: ['berkuah', 'digoreng', 'dipanggang', 'dikukus', 'mentah', 'tumisan', 'rebusan'] },
-      tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+      title: { type: "STRING" },
+      subtitle: { type: "STRING" },
+      description: { type: "STRING" },
+      origin: { type: "STRING" },
+      servings: { type: "INTEGER" },
+      prepTimeMinutes: { type: "INTEGER" },
+      cookTimeMinutes: { type: "INTEGER" },
+      difficulty: { type: "STRING", enum: ['mudah', 'sedang', 'sulit'] },
+      type: { type: "STRING", enum: ['berkuah', 'digoreng', 'dipanggang', 'dikukus', 'mentah', 'tumisan', 'rebusan'] },
+      tags: { type: "ARRAY", items: { type: "STRING" } },
       ingredients: {
-        type: Type.ARRAY,
+        type: "ARRAY",
         items: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            name: { type: Type.STRING },
-            amount: { type: Type.STRING },
-            amountGrams: { type: Type.NUMBER },
-            category: { type: Type.STRING, enum: ['protein', 'karbohidrat', 'sayuran', 'bumbu', 'minyak', 'lainnya'] },
-            notes: { type: Type.STRING },
+            name: { type: "STRING" },
+            amount: { type: "STRING" },
+            amountGrams: { type: "NUMBER" },
+            category: { type: "STRING", enum: ['protein', 'karbohidrat', 'sayuran', 'bumbu', 'minyak', 'lainnya'] },
+            notes: { type: "STRING" },
             nutrition: {
-              type: Type.OBJECT,
+              type: "OBJECT",
               properties: {
-                calories: { type: Type.NUMBER },
-                protein: { type: Type.NUMBER },
-                carbs: { type: Type.NUMBER },
-                fat: { type: Type.NUMBER },
-                fiber: { type: Type.NUMBER },
-                sodium: { type: Type.NUMBER },
-                vitaminC: { type: Type.NUMBER },
-                vitaminA: { type: Type.NUMBER },
-                calcium: { type: Type.NUMBER },
-                iron: { type: Type.NUMBER },
-                potassium: { type: Type.NUMBER },
+                calories: { type: "NUMBER" },
+                protein: { type: "NUMBER" },
+                carbs: { type: "NUMBER" },
+                fat: { type: "NUMBER" },
+                fiber: { type: "NUMBER" },
+                sodium: { type: "NUMBER" },
+                vitaminC: { type: "NUMBER" },
+                vitaminA: { type: "NUMBER" },
+                calcium: { type: "NUMBER" },
+                iron: { type: "NUMBER" },
+                potassium: { type: "NUMBER" },
               },
               required: ['calories', 'protein', 'carbs', 'fat', 'fiber'],
             },
@@ -142,52 +125,58 @@ Pastikan:
         },
       },
       steps: {
-        type: Type.ARRAY,
+        type: "ARRAY",
         items: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            stepNumber: { type: Type.INTEGER },
-            title: { type: Type.STRING },
-            description: { type: Type.STRING },
-            durationMinutes: { type: Type.NUMBER },
-            tip: { type: Type.STRING },
-            heat: { type: Type.STRING, enum: ['rendah', 'sedang', 'tinggi', 'tanpa api'] },
+            stepNumber: { type: "INTEGER" },
+            title: { type: "STRING" },
+            description: { type: "STRING" },
+            durationMinutes: { type: "NUMBER" },
+            tip: { type: "STRING" },
+            heat: { type: "STRING", enum: ['rendah', 'sedang', 'tinggi', 'tanpa api'] },
           },
           required: ['stepNumber', 'title', 'description'],
         },
       },
       equipment: {
-        type: Type.ARRAY,
+        type: "ARRAY",
         items: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            name: { type: Type.STRING },
-            essential: { type: Type.BOOLEAN },
+            name: { type: "STRING" },
+            essential: { type: "BOOLEAN" },
           },
           required: ['name', 'essential'],
         },
       },
-      imagePrompt: { type: Type.STRING },
-      storageInstructions: { type: Type.STRING },
-      variations: { type: Type.ARRAY, items: { type: Type.STRING } },
-      pairingWith: { type: Type.ARRAY, items: { type: Type.STRING } },
+      imagePrompt: { type: "STRING" },
+      storageInstructions: { type: "STRING" },
+      variations: { type: "ARRAY", items: { type: "STRING" } },
+      pairingWith: { type: "ARRAY", items: { type: "STRING" } },
     },
     required: ['title', 'description', 'servings', 'prepTimeMinutes', 'cookTimeMinutes',
                'difficulty', 'type', 'ingredients', 'steps', 'equipment', 'imagePrompt'],
   };
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: userPrompt,
-    config: {
+  const response = await fetch('/api/ai/generate-recipe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: userPrompt,
       systemInstruction: systemPrompt,
-      responseMimeType: "application/json",
-      responseSchema,
-    },
+      responseSchema
+    })
   });
 
-  const jsonText = response.text;
-  if (!jsonText) throw new Error("Gemini tidak mengembalikan data");
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || "Gagal memanggil server untuk generate resep");
+  }
+
+  const data = await response.json();
+  const jsonText = data.text;
+  if (!jsonText) throw new Error("Server tidak mengembalikan data teks");
 
   const raw = JSON.parse(jsonText);
 
@@ -263,8 +252,6 @@ Pastikan:
 // ─── IMAGE GENERATION ─────────────────────────────────────────────────────
 
 export const generateRecipeImage = async (recipe: Recipe): Promise<string> => {
-  const ai = getClient();
-
   const prompt = `${recipe.imagePrompt || recipe.title}. 
   Food photography style. Professional overhead shot or 45-degree angle. 
   Authentic Indonesian cuisine. Beautiful plating on traditional Indonesian ceramic or wooden board. 
@@ -272,25 +259,24 @@ export const generateRecipeImage = async (recipe: Recipe): Promise<string> => {
   Negative: text, labels, watermark, cartoon, illustration style.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: { parts: [{ text: prompt }] },
-      config: { responseModalities: ["IMAGE", "TEXT"] },
+    const response = await fetch('/api/ai/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
 
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if ((part as any).inlineData?.data) {
-          const p = part as any;
-          return `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`;
-        }
-      }
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Gagal memanggil server untuk generate gambar");
     }
+
+    const data = await response.json();
+    return data.imageUrl;
   } catch (e) {
     console.warn("Image generation failed, using placeholder:", e);
   }
 
   // Fallback: unsplash food image
   const foodKeywords = encodeURIComponent(recipe.title.split(' ').slice(0, 3).join(' '));
-  return `https://source.unsplash.com/800x600/?${foodKeywords},indonesian,food`;
+  return `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop`;
 };

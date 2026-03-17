@@ -8,6 +8,7 @@ import midtransClient from 'midtrans-client';
 import admin from 'firebase-admin';
 
 import { getFirestore } from 'firebase-admin/firestore';
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -202,6 +203,76 @@ app.post('/api/payment/webhook', async (req, res) => {
     res.status(200).send('OK');
   } catch (error: any) {
     console.error('Webhook Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3. Gemini API: Generate Recipe
+app.post('/api/ai/generate-recipe', async (req, res) => {
+  try {
+    const { prompt, systemInstruction, responseSchema } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema
+      },
+    });
+
+    res.json({ text: response.text });
+  } catch (error: any) {
+    console.error('Gemini Recipe Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 4. Gemini API: Generate Image
+app.post('/api/ai/generate-image', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: prompt }],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1"
+        }
+      },
+    });
+
+    let imageUrl = '';
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+        break;
+      }
+    }
+
+    if (!imageUrl) {
+      throw new Error('No image data returned from Gemini');
+    }
+
+    res.json({ imageUrl });
+  } catch (error: any) {
+    console.error('Gemini Image Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
